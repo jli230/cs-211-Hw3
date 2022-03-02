@@ -10,7 +10,14 @@
 
 
 /** TYPEDEFS / STRUCTs HERE ***/
+typedef struct bpstack ElemType;
+#define FORMAT_STRING "  %lf\n"
+#define CAPACITY 128
 
+struct bpstack {
+   int prevscore;
+   char **prevboard;
+};
 
 struct bpgame {
 
@@ -20,13 +27,80 @@ struct bpgame {
    int rows;
    int cols;
    char **board;
-   char **prevboard;
+   int score;
+   struct stack_struct *boardstack;
 };
 
+/*** STACK IMPLEMENTATION HERE ***/
+
+struct stack_struct {
+    ElemType items[CAPACITY];
+    int top;
+};
+
+typedef struct stack_struct *StackPtr;
+
+StackPtr stk_create(){
+    StackPtr s = malloc(sizeof(struct stack_struct));
+
+    s->top = -1;  // stack initially empty
+    return s;
+}
+
+// TODO
+StackPtr stk_clone(StackPtr s) {
+
+
+  return NULL;  // temporary placeholder
 
 
 
+}
 
+void stk_free(StackPtr s) {
+    free(s);
+}
+
+int stk_push(StackPtr s, ElemType val){
+    if(s->top == CAPACITY - 1)
+	return 0;
+    s->top++;
+    s->items[s->top] = val;
+    return 1;
+}
+
+ElemType stk_pop(StackPtr s){
+    if(s->top == -1)
+        abort();  // library function which terminates program!!!
+    s->top--;
+    return s->items[s->top+1];
+}
+
+int stk_is_full(StackPtr s){
+    return s->top == CAPACITY-1;
+}
+
+int stk_is_empty(StackPtr s){
+    return s->top == -1;
+}
+
+int stk_size(StackPtr s) {
+    return s->top+1;
+}
+
+void stk_clear(StackPtr s){
+    s->top = -1;
+}
+
+// void stk_print(StackPtr s) {
+//     int i;
+//     printf("\n----TOP-----\n");
+
+//     for(i=s->top; i>=0; i--) {
+//         bp_display(s->items[i]);
+//     }
+//     printf("---BOTTOM---\n");
+// }
 /*** IMPLEMENTATION OF bp_XXXX FUNCTIONS HERE  ****/
 
 extern BPGame * bp_create(int nrows, int ncols){
@@ -42,7 +116,7 @@ extern BPGame * bp_create(int nrows, int ncols){
       newboard[i] = (char*)malloc(ncols*sizeof(char));
       previousboard[i] = (char*)malloc(ncols*sizeof(char));
    }
-   srand(time(NULL));
+   //srand(time(NULL));
    for (int row = 0; row < nrows; row++) {
       for (int col = 0; col < ncols; col++) {
          newboard[row][col] = assets[rand()%5];
@@ -53,14 +127,16 @@ extern BPGame * bp_create(int nrows, int ncols){
    bp->rows = nrows;
    bp->cols = ncols;
    bp->board = newboard;
-   bp->prevboard = previousboard;
+   bp->score = 0;
+
+   bp->boardstack = stk_create();
    return bp;
 }
 
 int verify (char compared) {
    char assets[5] = {None, Red, Blue, Green, Yellow};
    for (int i = 0; i < 5; i++) {
-      printf("Character checked: %c\n", assets[i]);
+      //printf("Character checked: %c\n", assets[i]);
       if (compared == assets[i]){
          return 1;
       }
@@ -69,7 +145,7 @@ int verify (char compared) {
 }
 
 extern BPGame * bp_create_from_mtx(char mtx[][MAX_COLS], int nrows, int ncols){
-    char assets[5] = {None, Red, Blue, Green, Yellow};
+   char assets[5] = {None, Red, Blue, Green, Yellow};
    if (nrows>MAX_ROWS || ncols>MAX_COLS) {
       printf("Exceeded maximum values for dimensions.\n");
       return NULL;
@@ -78,10 +154,8 @@ extern BPGame * bp_create_from_mtx(char mtx[][MAX_COLS], int nrows, int ncols){
       return NULL;
    }
    char **newboard = (char **)malloc(nrows*sizeof(char *));
-   char **previousboard = (char **)malloc(nrows*sizeof(char *));
    for (int i = 0; i < nrows; ++i) {
       newboard[i] = (char*)malloc(ncols*sizeof(char));
-      previousboard[i] = (char*)malloc(ncols*sizeof(char));
    }
    BPGame * bp = (BPGame*)malloc(sizeof(BPGame));
    bp->rows = nrows;
@@ -90,9 +164,9 @@ extern BPGame * bp_create_from_mtx(char mtx[][MAX_COLS], int nrows, int ncols){
    for (int row = 0; row < nrows; row++) {
       for (int col = 0; col < ncols; col++) {
          newboard[row][col] = mtx[row][col];
-         printf("Asset to check: %c\n", mtx[row][col]);
+         //printf("Asset to check: %c\n", mtx[row][col]);
          if (verify(mtx[row][col]) != 1) {
-            printf("Invalid character detected! %i %i", row, col);
+            printf("Invalid character detected! %i %i\n", row, col);
             return NULL;
          } else {
             newboard[row][col] = mtx[row][col];
@@ -107,6 +181,82 @@ extern void bp_destroy(BPGame * b){
       free(b->board[i]);
    }
    free(b->board);
+}
+
+int cluster_pop(BPGame * b, int r, int c){
+   int nrows = b->rows;
+   int ncols = b->cols;
+   char bal = b->board[r][c];
+   if (b->board[r][c] == '.') {
+      return 0;
+   }
+   b->score += 1;
+   b->board[r][c] = '.';
+   if(r != nrows-1 && bal == b->board[r+1][c]){
+      cluster_pop(b, r+1, c);
+   }
+   if(r !=0 && bal == b->board[r-1][c]){
+      cluster_pop(b, r-1, c);
+   }
+   if(c !=ncols-1 && bal == b->board[r][c+1]){
+      cluster_pop(b, r, c+1);
+   }
+   if(c !=0 && bal == b->board[r][c-1]){
+      cluster_pop(b, r, c-1);
+   }
+   return 1;
+}
+
+extern int bp_pop(BPGame * b, int r, int c){
+   printf("Checking coordinate (%i, %i)\n", r, c);
+   int nrows = b->rows;
+   int ncols = b->cols;
+   char bal = b->board[r][c];
+   
+   if (b->board[r][c] == '.') {
+      return 0;
+   }
+   struct bpstack * entry = (struct bpstack*)malloc(sizeof(struct bpstack)); 
+   printf("test\n");
+   entry->prevscore = b->score;
+   printf("test\n");
+   char **prevboard = (char **)malloc(nrows*sizeof(char *));
+   for (int i = 0; i < nrows; ++i) {
+      prevboard[i] = (char*)malloc(ncols*sizeof(char));
+   }
+   for (int i = 0; i < nrows; i++) {
+      for (int j = 0; j < ncols; j++) {
+         prevboard[i][j] = b->board[i][j];
+      }
+   }
+   entry->prevboard = prevboard;
+   stk_push(b->boardstack, *entry);
+   b->score += 1;
+   b->board[r][c] = '.';
+   if(r != nrows-1 && bal == b->board[r+1][c]){
+      cluster_pop(b, r+1, c);
+   }
+   if(r !=0 && bal == b->board[r-1][c]){
+      cluster_pop(b, r-1, c);
+   }
+   if(c !=ncols-1 && bal == b->board[r][c+1]){
+      cluster_pop(b, r, c+1);
+   }
+   if(c !=0 && bal == b->board[r][c-1]){
+      cluster_pop(b, r, c-1);
+   }
+   printf("Adding score:\n");
+   return 1;
+}
+
+extern int bp_undo(BPGame * b){
+   if (b->boardstack->top == -1) {
+      return 0;
+   }
+   ElemType previous = stk_pop(b->boardstack);
+   b->score = previous.prevscore;
+   b->board = previous.prevboard;
+   return 1;
 }
 
 extern void bp_display(BPGame * b) {
@@ -137,6 +287,8 @@ extern void bp_display(BPGame * b) {
    printf("\n");
 }
 
+
+
 int main() {
    struct bpgame *newbp = bp_create(10,10);
    newbp->board[2][2] = None;
@@ -155,5 +307,18 @@ int main() {
    if (nextbp != NULL) {
       bp_display(nextbp);
    }
+   printf("Score is: %i\n", newbp->score);
+   bp_pop(newbp, 1, 2);
+   bp_pop(newbp, 1, 5);
+   bp_display(newbp);
+   printf("Score is: %i\n", newbp->score);
+   bp_undo(newbp);
+   bp_display(newbp);
+   printf("Score is: %i\n", newbp->score);
+   bp_undo(newbp);
+   bp_display(newbp);
+   printf("bp_undo status at start: %i\n", bp_undo(newbp));
+   bp_display(newbp);
+   printf("Score is: %i\n", newbp->score);
    printf("Character at 2 2 %c\n", newbp->board[2][2]);
 }
