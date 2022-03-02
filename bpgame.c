@@ -249,16 +249,6 @@ extern int bp_pop(BPGame * b, int r, int c){
    return 1;
 }
 
-extern int bp_undo(BPGame * b){
-   if (b->boardstack->top == -1) {
-      return 0;
-   }
-   ElemType previous = stk_pop(b->boardstack);
-   b->score = previous.prevscore;
-   b->board = previous.prevboard;
-   return 1;
-}
-
 extern void bp_display(BPGame * b) {
    printf("  +-");
    for (int i = 0; i < b->cols; i++) {
@@ -287,7 +277,19 @@ extern void bp_display(BPGame * b) {
    printf("\n");
 }
 
+extern int bp_score(BPGame * b){
+   return b->score;
+}
 
+extern int bp_undo(BPGame * b){
+   if (b->boardstack->top == -1) {
+      return 0;
+   }
+   ElemType previous = stk_pop(b->boardstack);
+   b->score = previous.prevscore;
+   b->board = previous.prevboard;
+   return 1;
+}
 
 int main() {
    struct bpgame *newbp = bp_create(10,10);
@@ -307,18 +309,18 @@ int main() {
    if (nextbp != NULL) {
       bp_display(nextbp);
    }
-   printf("Score is: %i\n", newbp->score);
+   printf("Score is: %i\n", bp_score(newbp));
    bp_pop(newbp, 1, 2);
    bp_pop(newbp, 1, 5);
    bp_display(newbp);
-   printf("Score is: %i\n", newbp->score);
+   printf("Score is: %i\n", bp_score(newbp));
    bp_undo(newbp);
    bp_display(newbp);
-   printf("Score is: %i\n", newbp->score);
+   printf("Score is: %i\n", bp_score(newbp));
    bp_undo(newbp);
    bp_display(newbp);
    printf("bp_undo status at start: %i\n", bp_undo(newbp));
    bp_display(newbp);
-   printf("Score is: %i\n", newbp->score);
+   printf("Score is: %i\n", bp_score(newbp));
    printf("Character at 2 2 %c\n", newbp->board[2][2]);
 }
