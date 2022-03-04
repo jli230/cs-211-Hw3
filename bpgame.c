@@ -104,7 +104,6 @@ void stk_clear(StackPtr s){
 /*** IMPLEMENTATION OF bp_XXXX FUNCTIONS HERE  ****/
 
 extern BPGame * bp_create(int nrows, int ncols){
-   printf("testing bp\n");
    char assets[4] = {Red, Blue, Green, Yellow};
    if (nrows>MAX_ROWS || ncols>MAX_COLS) {
       printf("Exceeded maximum values for dimensions.\n");
@@ -190,28 +189,28 @@ int cluster_pop(BPGame * b, int r, int c){
    int nrows = b->rows;
    int ncols = b->cols;
    char bal = b->board[r][c];
+   int clusterscore = 0;
    if (b->board[r][c] == '.') {
       return 0;
    }
-   b->score += 1;
+   clusterscore += 1;
    b->board[r][c] = '.';
    if(r != nrows-1 && bal == b->board[r+1][c]){
-      cluster_pop(b, r+1, c);
+      clusterscore += cluster_pop(b, r+1, c);
    }
    if(r !=0 && bal == b->board[r-1][c]){
-      cluster_pop(b, r-1, c);
+      clusterscore += cluster_pop(b, r-1, c);
    }
    if(c !=ncols-1 && bal == b->board[r][c+1]){
-      cluster_pop(b, r, c+1);
+      clusterscore += cluster_pop(b, r, c+1);
    }
    if(c !=0 && bal == b->board[r][c-1]){
-      cluster_pop(b, r, c-1);
+      clusterscore += cluster_pop(b, r, c-1);
    }
-   return 1;
+   return clusterscore;
 }
 
 int neighborcheck(BPGame * b, int r, int c){
-   printf("Checking neighbors\n");
    char balloon = b->board[r][c];
    if(r >= 1) {
       if (b->board[r-1][c] == balloon) {
@@ -241,6 +240,7 @@ extern int bp_pop(BPGame * b, int r, int c){
    int nrows = b->rows;
    int ncols = b->cols;
    char bal = b->board[r][c];
+   int clusterscore = 0;
    if (bal == '.' || neighborcheck(b, r, c) == 0) {
       return 0;
    }
@@ -257,23 +257,24 @@ extern int bp_pop(BPGame * b, int r, int c){
    }
    entry->prevboard = prevboard;
    stk_push(b->boardstack, *entry);
-   b->score += 1;
+   clusterscore += 1;
    b->board[r][c] = '.';
    if(r != nrows-1 && bal == b->board[r+1][c]){
-      cluster_pop(b, r+1, c);
+      clusterscore += cluster_pop(b, r+1, c);
    }
    if(r !=0 && bal == b->board[r-1][c]){
-      cluster_pop(b, r-1, c);
+      clusterscore += cluster_pop(b, r-1, c);
    }
    if(c !=ncols-1 && bal == b->board[r][c+1]){
-      cluster_pop(b, r, c+1);
+      clusterscore += cluster_pop(b, r, c+1);
    }
    if(c !=0 && bal == b->board[r][c-1]){
-      cluster_pop(b, r, c-1);
+      clusterscore += cluster_pop(b, r, c-1);
    }
    while(bp_is_compact(b) != 1) {
       bp_float_one_step(b);
    }
+   b->score += clusterscore * (clusterscore-1); 
    return 1;
 }
 
@@ -322,23 +323,27 @@ extern void bp_float_one_step(BPGame * b){
 
 
 extern void bp_display(BPGame * b) {
-   printf("  +-");
+   printf("   +-");
    for (int i = 0; i < b->cols; i++) {
       printf("----");
    }
    printf("-+\n");
    for (int row = 0; row < b->rows; row++) {
-      printf("%i |  ", row);
+      if (row < 10) {
+         printf("0%i |  ", row);
+      } else {
+         printf("%i |  ", row);
+      }
       for (int col = 0; col < b->cols; col++) {
          printf("%c   ", b->board[row][col]);
       }
       printf("|\n");
    }
-   printf("  +-");
+   printf("   +-");
    for (int i = 0; i < b->cols; i++) {
       printf("----");
    }
-   printf("-+\n    ");
+   printf("-+\n     ");
    for (int col = 0; col < b->cols; col++) {
       if (col < 10) {
          printf("0%i  ", col);
