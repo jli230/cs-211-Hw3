@@ -103,6 +103,18 @@ void stk_clear(StackPtr s){
 // }
 /*** IMPLEMENTATION OF bp_XXXX FUNCTIONS HERE  ****/
 
+void bp_display_STD(BPGame *b) {
+   int nrows = b->rows;
+   int ncols = b->cols;
+    for (int row = 0; row < nrows; row++) {
+        for (int col = 0; col < ncols; col++) {
+            printf("%c", b->board[row][col]);
+        }
+        printf("\n");
+    }
+}
+
+
 extern BPGame * bp_create(int nrows, int ncols){
    char assets[4] = {Red, Blue, Green, Yellow};
    if (nrows>MAX_ROWS || ncols>MAX_COLS) {
