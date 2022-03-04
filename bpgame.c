@@ -260,7 +260,6 @@ int neighborcheck(BPGame * b, int r, int c){
 }
 
 extern int bp_pop(BPGame * b, int r, int c){
-   printf("Checking coordinate (%i, %i)\n", r, c);
    int nrows = b->rows;
    int ncols = b->cols;
    char bal = b->board[r][c];
@@ -300,7 +299,7 @@ extern int bp_pop(BPGame * b, int r, int c){
       bp_float_one_step(b);
    }
    b->score += clusterscore * (clusterscore-1); 
-   return 1;
+   return clusterscore;
 }
 
 extern int comp(BPGame * b, int row, int col){
