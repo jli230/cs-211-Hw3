@@ -234,7 +234,6 @@ extern int bp_score(BPGame * b);
 *		if (r,c) is out of range, -1 is returned.
 *
 */
-extern int bp_get_balloon(BPGame * b, int r, int c);
 
 
 /**
