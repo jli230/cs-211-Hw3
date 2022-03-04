@@ -419,7 +419,7 @@ extern int bp_undo(BPGame * b){
    return 1;
 }
 
-int main() {
+/*int main() {
    printf("testing\n");
    struct bpgame *newbp = bp_create(2,6);
    // // newbp->board[2][2] = None;
@@ -460,4 +460,4 @@ int main() {
    // bp_display(newbp);
    // printf("Current status of game is %i\n", bp_can_pop(newbp));
    bp_destroy(newbp);
-}
+}*/
