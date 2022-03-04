@@ -268,8 +268,9 @@ extern int bp_pop(BPGame * b, int r, int c){
    if (bal == '.' || neighborcheck(b, r, c) == 0) {
       return 0;
    }
-   struct bpstack * entry = (struct bpstack*)malloc(sizeof(struct bpstack)); 
-   entry->prevscore = b->score;
+   struct bpstack entry; 
+   //(struct bpstack*)malloc(sizeof(struct bpstack)); 
+   entry.prevscore = b->score;
    char **prevboard = (char **)malloc(nrows*sizeof(char *));
    for (int i = 0; i < nrows; ++i) {
       prevboard[i] = (char*)malloc(ncols*sizeof(char));
@@ -279,8 +280,8 @@ extern int bp_pop(BPGame * b, int r, int c){
          prevboard[i][j] = b->board[i][j];
       }
    }
-   entry->prevboard = prevboard;
-   stk_push(b->boardstack, *entry);
+   entry.prevboard = prevboard;
+   stk_push(b->boardstack, entry);
    clusterscore += 1;
    b->board[r][c] = '.';
    if(r <= nrows-2 && bal == b->board[r+1][c]){
@@ -424,7 +425,7 @@ extern int bp_undo(BPGame * b){
    // // newbp->board[2][2] = None;
    // printf("testing");
    // printf("Character at 2 2 %c\n Rows: %i Cols: %i\n", newbp->board[2][2], newbp->rows, newbp->cols);
-   // bp_display(newbp);
+   bp_display(newbp);
    // // char m[40][40];
    // // m[0][0] = '.';
    // // m[0][1] = '.';
@@ -438,11 +439,11 @@ extern int bp_undo(BPGame * b){
    // //    bp_display(nextbp);
    // // }
    // printf("Score is: %i\n", bp_score(newbp));
-   bp_display(newbp);
+   // bp_display(newbp);
    bp_pop(newbp, 1, 2);
    bp_pop(newbp, 1, 5);
-   bp_display(newbp);
-   printf("Score is: %i\n", bp_score(newbp));
+   // bp_display(newbp);
+   // printf("Score is: %i\n", bp_score(newbp));
    // bp_undo(newbp);
    // bp_display(newbp);
    // printf("Score is: %i\n", bp_score(newbp));
@@ -451,12 +452,12 @@ extern int bp_undo(BPGame * b){
    //printf("bp_undo status at start: %i\n", bp_undo(newbp));
    // bp_display(newbp);
    // printf("Score is: %i\n", bp_score(newbp));
-   printf("Scoreboard compact status is: %i\n", bp_is_compact(newbp));
-   bp_display(newbp);
-   bp_pop(newbp, 1, 0);
-   bp_pop(newbp, 0, 1);
-   bp_pop(newbp, 0, 3);
-   bp_display(newbp);
-   printf("Current status of game is %i\n", bp_can_pop(newbp));
+   // printf("Scoreboard compact status is: %i\n", bp_is_compact(newbp));
+   // bp_display(newbp);
+   // bp_pop(newbp, 1, 0);
+   // bp_pop(newbp, 0, 1);
+   // bp_pop(newbp, 0, 3);
+   // bp_display(newbp);
+   // printf("Current status of game is %i\n", bp_can_pop(newbp));
    bp_destroy(newbp);
 }*/
