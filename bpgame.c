@@ -196,14 +196,14 @@ extern void bp_destroy(BPGame * b){
    for (int i = 0; i < b->rows; ++i) {
       free(b->board[i]);
    }
-   while(stk_size(b->boardstack) != 0){
-      printf("Popping remaining entries\n");
-      ElemType previous = stk_pop(b->boardstack);
-      for (int i = 0; i < b->rows; i ++) {
-         free(previous.prevboard[i]);
-      }
-      free(previous.prevboard);
-   }
+   // while(stk_size(b->boardstack) != 0){
+   //    printf("Popping remaining entries\n");
+   //    ElemType previous = stk_pop(b->boardstack);
+   //    for (int i = 0; i < b->rows; i ++) {
+   //       free(previous.prevboard[i]);
+   //    }
+   //    free(previous.prevboard);
+   // }
    stk_free(b->boardstack);
    free(b->board);
    free(b);
