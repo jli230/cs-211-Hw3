@@ -1,4 +1,9 @@
-
+/**
+ * Author: Justin Li, 669651335, Spring 2022
+ * 
+ * Program for the ADTs of balloon pop game
+ * 
+ * /
 // file:  bpgame.c
 
 
