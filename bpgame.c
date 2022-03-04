@@ -29,7 +29,7 @@ struct bpgame {
    char **board;
    int score;
    struct stack_struct *boardstack;
-};
+}BPGAME;
 
 /*** STACK IMPLEMENTATION HERE ***/
 
@@ -48,14 +48,14 @@ StackPtr stk_create(){
 }
 
 // TODO
-StackPtr stk_clone(StackPtr s) {
+// StackPtr stk_clone(StackPtr s) {
 
 
-  return NULL;  // temporary placeholder
+//   return NULL;  // temporary placeholder
 
 
 
-}
+// }
 
 void stk_free(StackPtr s) {
     free(s);
@@ -105,7 +105,7 @@ void stk_clear(StackPtr s){
 
 extern BPGame * bp_create(int nrows, int ncols){
    printf("testing bp\n");
-   char assets[5] = {None, Red, Blue, Green, Yellow};
+   char assets[4] = {Red, Blue, Green, Yellow};
    if (nrows>MAX_ROWS || ncols>MAX_COLS) {
       printf("Exceeded maximum values for dimensions.\n");
       return NULL;
@@ -119,7 +119,7 @@ extern BPGame * bp_create(int nrows, int ncols){
    //srand(time(NULL));
    for (int row = 0; row < nrows; row++) {
       for (int col = 0; col < ncols; col++) {
-         newboard[row][col] = assets[rand()%5];
+         newboard[row][col] = assets[rand()%4];
          previousboard[row][col] = newboard[row][col];
       }
    }
@@ -128,7 +128,9 @@ extern BPGame * bp_create(int nrows, int ncols){
    bp->cols = ncols;
    bp->board = newboard;
    bp->score = 0;
-
+   // while(bp_is_compact(bp) != 1) {
+   //    bp_float_one_step(bp);
+   // }
    bp->boardstack = stk_create();
    return bp;
 }
@@ -181,6 +183,7 @@ extern void bp_destroy(BPGame * b){
       free(b->board[i]);
    }
    free(b->board);
+   stk_free(b->boardstack);
 }
 
 int cluster_pop(BPGame * b, int r, int c){
@@ -207,19 +210,42 @@ int cluster_pop(BPGame * b, int r, int c){
    return 1;
 }
 
+int neighborcheck(BPGame * b, int r, int c){
+   printf("Checking neighbors\n");
+   char balloon = b->board[r][c];
+   if(r >= 1) {
+      if (b->board[r-1][c] == balloon) {
+         return 1;
+      }
+   }
+   if(r <= b->rows-2) {
+      if (b->board[r+1][c] == balloon) {
+         return 1;
+      }
+   }
+   if(c >= 1) {
+      if (b->board[r][c-1] == balloon) {
+         return 1;
+      }
+   }
+   if(c <= b->cols-2) {
+      if (b->board[r][c+1] == balloon) {
+         return 1;
+      }
+   }
+   return 0;
+}
+
 extern int bp_pop(BPGame * b, int r, int c){
    printf("Checking coordinate (%i, %i)\n", r, c);
    int nrows = b->rows;
    int ncols = b->cols;
    char bal = b->board[r][c];
-   
-   if (b->board[r][c] == '.') {
+   if (bal == '.' || neighborcheck(b, r, c) == 0) {
       return 0;
    }
    struct bpstack * entry = (struct bpstack*)malloc(sizeof(struct bpstack)); 
-   printf("test\n");
    entry->prevscore = b->score;
-   printf("test\n");
    char **prevboard = (char **)malloc(nrows*sizeof(char *));
    for (int i = 0; i < nrows; ++i) {
       prevboard[i] = (char*)malloc(ncols*sizeof(char));
@@ -245,9 +271,55 @@ extern int bp_pop(BPGame * b, int r, int c){
    if(c !=0 && bal == b->board[r][c-1]){
       cluster_pop(b, r, c-1);
    }
-   printf("Adding score:\n");
+   while(bp_is_compact(b) != 1) {
+      bp_float_one_step(b);
+   }
    return 1;
 }
+
+extern int comp(BPGame * b, int row, int col){
+   if(b->board[row-1][col] == '.'){
+      return 0;
+   }
+   return 1;
+}
+extern int bp_is_compact(BPGame * b){
+   int nrows = b->rows;
+   int ncols = b->cols;
+   for(int row = 1; row<nrows; row++){
+      for (int col = 0; col<ncols; col++){
+         if(b->board[row][col] != '.'){
+            if(comp(b, row, col) == 0){
+               return 0;
+            }
+         }
+      
+      }
+   }
+   return 1;
+}
+
+extern void bp_float(BPGame * b, int col, int row, char balloon){
+  if (b->board[row-1][col] == '.') {
+     b->board[row-1][col] = balloon;
+     b->board[row][col] = '.';
+  }
+}
+extern void bp_float_one_step(BPGame * b){
+  int nrows = b->rows;
+  int ncols = b->cols;
+  char bal; 
+  for(int row = 1; row<nrows; row++){
+    for(int col = 0; col<ncols; col++){
+       //printf("Testing %i %i\n", row, col);
+      bal=b->board[row][col];
+      if(bal != '.'){
+         bp_float(b, col, row, bal);
+      }
+    }  
+  } 
+}
+
 
 extern void bp_display(BPGame * b) {
    printf("  +-");
@@ -281,6 +353,28 @@ extern int bp_score(BPGame * b){
    return b->score;
 }
 
+extern int bp_get_balloon(BPGame * b, int r, int c){
+   if (r < 0 || c < 0 || r > b->rows-1 || c > b->cols-1 ){
+      return -1;
+   } else {
+      return b->board[r][c];
+   }
+}
+extern int bp_can_pop(BPGame * b){
+   int nrows = b->rows;
+   int ncols = b->cols;
+   for (int row = 0; row < nrows; row++) {
+      for (int col = 0; col < ncols; col++) {
+         char bal = b->board[row][col];
+         if (bal != '.') {
+            if (neighborcheck(b, row, col) ==1) {
+               return 1;
+            }
+         }
+      }
+   }
+   return 0;
+}
 extern int bp_undo(BPGame * b){
    if (b->boardstack->top == -1) {
       return 0;
@@ -291,8 +385,8 @@ extern int bp_undo(BPGame * b){
    return 1;
 }
 
-int main() {
-   struct bpgame *newbp = bp_create(10,10);
+/*int main() {
+   struct bpgame *newbp = bp_create(2,5);
    newbp->board[2][2] = None;
    printf("testing");
    printf("Character at 2 2 %c\n Rows: %i Cols: %i\n", newbp->board[2][2], newbp->rows, newbp->cols);
@@ -322,5 +416,12 @@ int main() {
    printf("bp_undo status at start: %i\n", bp_undo(newbp));
    bp_display(newbp);
    printf("Score is: %i\n", bp_score(newbp));
-   printf("Character at 2 2 %c\n", newbp->board[2][2]);
-}
+   printf("Scoreboard compact status is: %i\n", bp_is_compact(newbp));
+   bp_display(newbp);
+   bp_pop(newbp, 1, 0);
+   bp_pop(newbp, 0, 1);
+   bp_pop(newbp, 0, 3);
+   bp_display(newbp);
+   printf("Current status of game is %i\n", bp_can_pop(newbp));
+   //bp_destroy(newbp);
+}*/
