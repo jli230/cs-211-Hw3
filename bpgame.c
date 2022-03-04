@@ -75,10 +75,11 @@ int stk_push(StackPtr s, ElemType val){
 }
 
 ElemType stk_pop(StackPtr s){
-    if(s->top == -1)
-        abort();  // library function which terminates program!!!
-    s->top--;
-    return s->items[s->top+1];
+   if(s->top == -1)
+      abort();  // library function which terminates program!!!
+   s->top--;
+   ElemType newelem = s->items[s->top+1];
+   return newelem;
 }
 
 int stk_is_full(StackPtr s){
@@ -127,11 +128,13 @@ extern BPGame * bp_create(int nrows, int ncols){
       return NULL;
    }
    char **newboard = (char **)malloc(nrows*sizeof(char *));
-   srand(time(NULL));
+   //srand(time(NULL));
    for (int i = 0; i < nrows; ++i) {
       newboard[i] = (char*)malloc(ncols*sizeof(char));
+   }
+   for (int row = 0; row < nrows; row++){
       for (int col = 0; col < ncols; col++) {
-         newboard[i][col] = assets[rand()%4];
+         newboard[row][col] = assets[rand()%4];
       }
    }
    BPGame * bp = (BPGame*)malloc(sizeof(BPGame));
@@ -192,6 +195,14 @@ extern BPGame * bp_create_from_mtx(char mtx[][MAX_COLS], int nrows, int ncols){
 extern void bp_destroy(BPGame * b){
    for (int i = 0; i < b->rows; ++i) {
       free(b->board[i]);
+   }
+   while(stk_size(b->boardstack) != 0){
+      printf("Popping remaining entries\n");
+      ElemType previous = stk_pop(b->boardstack);
+      for (int i = 0; i < b->rows; i ++) {
+         free(previous.prevboard[i]);
+      }
+      free(previous.prevboard);
    }
    stk_free(b->boardstack);
    free(b->board);
@@ -272,16 +283,16 @@ extern int bp_pop(BPGame * b, int r, int c){
    stk_push(b->boardstack, *entry);
    clusterscore += 1;
    b->board[r][c] = '.';
-   if(r != nrows-1 && bal == b->board[r+1][c]){
+   if(r <= nrows-2 && bal == b->board[r+1][c]){
       clusterscore += cluster_pop(b, r+1, c);
    }
-   if(r !=0 && bal == b->board[r-1][c]){
+   if(r >=1 && bal == b->board[r-1][c]){
       clusterscore += cluster_pop(b, r-1, c);
    }
-   if(c !=ncols-1 && bal == b->board[r][c+1]){
+   if(c <=ncols-2 && bal == b->board[r][c+1]){
       clusterscore += cluster_pop(b, r, c+1);
    }
-   if(c !=0 && bal == b->board[r][c-1]){
+   if(c >=1 && bal == b->board[r][c-1]){
       clusterscore += cluster_pop(b, r, c-1);
    }
    while(bp_is_compact(b) != 1) {
@@ -391,7 +402,6 @@ extern int bp_can_pop(BPGame * b){
          }
       }
    }
-   bp_destroy(b);
    return 0;
 }
 extern int bp_undo(BPGame * b){
@@ -399,42 +409,48 @@ extern int bp_undo(BPGame * b){
       return 0;
    }
    ElemType previous = stk_pop(b->boardstack);
+   for (int i = 0; i < b->rows; i++){
+      free(b->board[i]);
+   }
+   free(b->board);
    b->score = previous.prevscore;
    b->board = previous.prevboard;
    return 1;
 }
 
 /*int main() {
-   struct bpgame *newbp = bp_create(2,5);
-   newbp->board[2][2] = None;
-   printf("testing");
-   printf("Character at 2 2 %c\n Rows: %i Cols: %i\n", newbp->board[2][2], newbp->rows, newbp->cols);
+   printf("testing\n");
+   struct bpgame *newbp = bp_create(2,6);
+   // // newbp->board[2][2] = None;
+   // printf("testing");
+   // printf("Character at 2 2 %c\n Rows: %i Cols: %i\n", newbp->board[2][2], newbp->rows, newbp->cols);
+   // bp_display(newbp);
+   // // char m[40][40];
+   // // m[0][0] = '.';
+   // // m[0][1] = '.';
+   // // m[0][2] = '^';
+   // // m[1][0] = '.';
+   // // m[1][1] = 'b';
+   // // m[1][2] = '.';
+   // // struct bpgame *nextbp = bp_create_from_mtx(m,2, 3);
+   // //bp_destroy(newbp);
+   // // if (nextbp != NULL) {
+   // //    bp_display(nextbp);
+   // // }
+   // printf("Score is: %i\n", bp_score(newbp));
    bp_display(newbp);
-   char m[40][40];
-   m[0][0] = '.';
-   m[0][1] = '.';
-   m[0][2] = '^';
-   m[1][0] = '.';
-   m[1][1] = 'b';
-   m[1][2] = '.';
-   struct bpgame *nextbp = bp_create_from_mtx(m,2, 3);
-   //bp_destroy(newbp);
-   if (nextbp != NULL) {
-      bp_display(nextbp);
-   }
-   printf("Score is: %i\n", bp_score(newbp));
    bp_pop(newbp, 1, 2);
    bp_pop(newbp, 1, 5);
    bp_display(newbp);
    printf("Score is: %i\n", bp_score(newbp));
-   bp_undo(newbp);
-   bp_display(newbp);
-   printf("Score is: %i\n", bp_score(newbp));
-   bp_undo(newbp);
-   bp_display(newbp);
-   printf("bp_undo status at start: %i\n", bp_undo(newbp));
-   bp_display(newbp);
-   printf("Score is: %i\n", bp_score(newbp));
+   // bp_undo(newbp);
+   // bp_display(newbp);
+   // printf("Score is: %i\n", bp_score(newbp));
+   // bp_undo(newbp);
+   // bp_display(newbp);
+   //printf("bp_undo status at start: %i\n", bp_undo(newbp));
+   // bp_display(newbp);
+   // printf("Score is: %i\n", bp_score(newbp));
    printf("Scoreboard compact status is: %i\n", bp_is_compact(newbp));
    bp_display(newbp);
    bp_pop(newbp, 1, 0);
@@ -442,5 +458,5 @@ extern int bp_undo(BPGame * b){
    bp_pop(newbp, 0, 3);
    bp_display(newbp);
    printf("Current status of game is %i\n", bp_can_pop(newbp));
-   //bp_destroy(newbp);
+   bp_destroy(newbp);
 }*/
