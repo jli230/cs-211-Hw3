@@ -132,7 +132,7 @@ extern BPGame * bp_create(int nrows, int ncols){
       newboard[i] = (char*)malloc(ncols*sizeof(char));
       previousboard[i] = (char*)malloc(ncols*sizeof(char));
    }
-   //srand(time(NULL));
+   srand(time(NULL));
    for (int row = 0; row < nrows; row++) {
       for (int col = 0; col < ncols; col++) {
          newboard[row][col] = assets[rand()%4];
@@ -198,7 +198,7 @@ extern void bp_destroy(BPGame * b){
    for (int i = 0; i < b->rows; ++i) {
       free(b->board[i]);
    }
-   //stk_free(b->boardstack);
+   stk_free(b->boardstack);
    free(b->board);
 }
 
