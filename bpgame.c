@@ -391,6 +391,7 @@ extern int bp_can_pop(BPGame * b){
          }
       }
    }
+   bp_destroy(b);
    return 0;
 }
 extern int bp_undo(BPGame * b){
