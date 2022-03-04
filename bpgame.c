@@ -295,9 +295,9 @@ extern int bp_pop(BPGame * b, int r, int c){
    if(c !=0 && bal == b->board[r][c-1]){
       clusterscore += cluster_pop(b, r, c-1);
    }
-   while(bp_is_compact(b) != 1) {
-      bp_float_one_step(b);
-   }
+   // while(bp_is_compact(b) != 1) {
+   //    bp_float_one_step(b);
+   // }
    b->score += clusterscore * (clusterscore-1); 
    return clusterscore;
 }
