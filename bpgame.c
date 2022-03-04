@@ -197,6 +197,7 @@ extern void bp_destroy(BPGame * b){
    }
    stk_free(b->boardstack);
    free(b->board);
+   free(b);
 }
 
 int cluster_pop(BPGame * b, int r, int c){
