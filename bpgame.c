@@ -123,17 +123,17 @@ void bp_display_STD(BPGame *b) {
 extern BPGame * bp_create(int nrows, int ncols){
    char assets[4] = {Red, Blue, Green, Yellow};
    if (nrows>MAX_ROWS || ncols>MAX_COLS) {
-      printf("Exceeded maximum values for dimensions.\n");
+      fprintf(stderr, "Exceeded maximum values for dimensions.\n");
       return NULL;
    }
    char **newboard = (char **)malloc(nrows*sizeof(char *));
+   srand(time(NULL));
    for (int i = 0; i < nrows; ++i) {
       newboard[i] = (char*)malloc(ncols*sizeof(char));
       for (int col = 0; col < ncols; col++) {
          newboard[i][col] = assets[rand()%4];
       }
    }
-   srand(time(NULL));
    BPGame * bp = (BPGame*)malloc(sizeof(BPGame));
    bp->rows = nrows;
    bp->cols = ncols;
@@ -160,10 +160,10 @@ int verify (char compared) {
 extern BPGame * bp_create_from_mtx(char mtx[][MAX_COLS], int nrows, int ncols){
    char assets[5] = {None, Red, Blue, Green, Yellow};
    if (nrows>MAX_ROWS || ncols>MAX_COLS) {
-      printf("Exceeded maximum values for dimensions.\n");
+      fprintf(stderr, "Exceeded maximum values for dimensions.\n");
       return NULL;
    } else if (nrows < 0 || ncols < 0) {
-      printf("Invalid row or column dimensions.\n");
+      fprintf(stderr, "Invalid row or column dimensions.\n");
       return NULL;
    }
    char **newboard = (char **)malloc(nrows*sizeof(char *));
