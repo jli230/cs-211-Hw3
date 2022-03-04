@@ -129,13 +129,11 @@ extern BPGame * bp_create(int nrows, int ncols){
    char **newboard = (char **)malloc(nrows*sizeof(char *));
    for (int i = 0; i < nrows; ++i) {
       newboard[i] = (char*)malloc(ncols*sizeof(char));
-   }
-   srand(time(NULL));
-   for (int row = 0; row < nrows; row++) {
       for (int col = 0; col < ncols; col++) {
-         newboard[row][col] = assets[rand()%4];
+         newboard[i][col] = assets[rand()%4];
       }
    }
+   srand(time(NULL));
    BPGame * bp = (BPGame*)malloc(sizeof(BPGame));
    bp->rows = nrows;
    bp->cols = ncols;
